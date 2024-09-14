@@ -1,9 +1,95 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.example</groupId>
+  <groupId>org.study</groupId>
   <artifactId>MavenAutotest</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
   <name>Archetype - MavenAutotest</name>
   <url>http://maven.apache.org</url>
+
+
+  <modules>
+    <module>api-test</module>
+    <module>ui-test</module>
+  </modules>
+
+  <properties>
+    <junit.version>5.11.0</junit.version>
+    <allure.version>2.25.0</allure.version>
+    <mavensunfire.version>3.5.0</mavensunfire.version>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-junit5</artifactId>
+      <version>${allure.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+
+  <profiles>
+
+    <profile>
+      <id>all-tests</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <modules>
+        <module>api-test</module>
+        <module>ui-test</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>api-test</id>
+      <modules>
+        <module>api-test</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>ui-test</id>
+      <modules>
+        <module>ui-test</module>
+      </modules>
+    </profile>
+
+  <profile>
+    <id>smoke-tests</id>
+    <build>
+      <plugins>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${mavensunfire.version}</version>
+          <configuration>
+            <groups>Smoke</groups>
+          </configuration>
+        </plugin>
+      </plugins>
+    </build>
+    <modules>
+      <module>api-test</module>
+      <module>ui-test</module>
+    </modules>
+  </profile>
+
+  </profiles>
+
 </project>
