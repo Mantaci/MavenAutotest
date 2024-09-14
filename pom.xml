@@ -26,6 +26,7 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${junit.version}</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -71,24 +72,25 @@
       </modules>
     </profile>
 
-  <profile>
-    <id>smoke-tests</id>
-    <build>
-      <plugins>
-        <plugin>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${mavensunfire.version}</version>
-          <configuration>
-            <groups>Smoke</groups>
-          </configuration>
-        </plugin>
-      </plugins>
-    </build>
-    <modules>
-      <module>api-test</module>
-      <module>ui-test</module>
-    </modules>
-  </profile>
+    <profile>
+      <id>smoke-tests</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${mavensunfire.version}</version>
+            <configuration>
+              <groups>Smoke</groups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <modules>
+        <module>api-test</module>
+        <module>ui-test</module>
+      </modules>
+    </profile>
 
   </profiles>
 
