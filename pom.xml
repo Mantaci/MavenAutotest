@@ -95,7 +95,7 @@
             <version>${mavensunfire.version}</version>
             <configuration>
               <includes>
-                <include>**/UiTests*.java</include>
+                <include>**/UITests*.java</include>
               </includes>
             </configuration>
           </plugin>
