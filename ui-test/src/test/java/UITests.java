@@ -1,5 +1,6 @@
 import com.codeborne.selenide.*;
 import core.*;
+import io.qameta.allure.Step;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -11,6 +12,7 @@ import static schema.URLS.*;
 public class UITests extends BaseUITest {
 
     @Test
+    @Step("checkboxesTest")
     public void checkboxesTest() {
         ElementsCollection checkboxes = $$x("//input");
         open(CHECKBOXES);
@@ -24,6 +26,7 @@ public class UITests extends BaseUITest {
     }
 
     @Test
+    @Step("dropdownTest")
     public void dropdownTest() {
         open(DROPDOWN);
 
@@ -40,6 +43,7 @@ public class UITests extends BaseUITest {
     }
 
     @Test
+    @Step("disappearingElementsTest")
     public void disappearingElementsTest(){
         int maxAttempts = 10;
 
@@ -60,6 +64,7 @@ public class UITests extends BaseUITest {
     }
 
     @Test
+    @Step("inputsTest")
     public void inputsTest() {
         open(INPUTS);
         SelenideElement input = $x("//input");
@@ -71,6 +76,7 @@ public class UITests extends BaseUITest {
     }
 
     @Test
+    @Step("hoversTest")
     public void hoversTest() {
         open(HOVERS);
 
@@ -84,6 +90,7 @@ public class UITests extends BaseUITest {
     }
 
     @Test
+    @Step("notificationTest")
     public void notificationTest() {
 
         open(NOTIFICATION_MESSAGE);
@@ -101,6 +108,7 @@ public class UITests extends BaseUITest {
     }
 
     @Test
+    @Step("addRemoveElementsTest")
     public void addRemoveElementsTest() {
 
         Random random = new Random();
@@ -126,6 +134,7 @@ public class UITests extends BaseUITest {
     }
 
     @Test
+    @Step("statusCodeTest")
     public void statusCodeTest() {
 
         open(STATUS_CODES);
