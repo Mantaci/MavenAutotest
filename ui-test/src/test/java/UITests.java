@@ -1,30 +1,51 @@
 import com.codeborne.selenide.*;
 import core.*;
 import io.qameta.allure.Step;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
+import io.qameta.allure.junit5.AllureJunit5;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
-
 import static com.codeborne.selenide.Selenide.*;
 import static schema.NotificationTest.*;
 import static schema.URLS.*;
 
+
+@ExtendWith(AllureJunit5.class)
 public class UITests extends BaseUITest {
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("checkboxOrderProvider")
     @Step("checkboxesTest")
-    public void checkboxesTest() {
+    public void checkboxesTest(int[] checkboxOrder) {
+
         ElementsCollection checkboxes = $$x("//input");
         open(CHECKBOXES);
 
-        for (SelenideElement checkbox : checkboxes) {
+        for (int index : checkboxOrder) {
+            SelenideElement checkbox = checkboxes.get(index);
+            boolean isCheckedBeforeClick = checkbox.isSelected();
             checkbox.click();
-            System.out.println(checkbox.getAttribute("checked"));
+            if (isCheckedBeforeClick) {
+                checkbox.shouldNotBe(Condition.checked);
+            } else {
+                checkbox.shouldBe(Condition.checked);
+            }
+            System.out.println("Checkbox " + index + " checked attribute: " + checkbox.isSelected());
         }
 
-
     }
+    private static int[][] checkboxOrderProvider() {
+        return new int[][] {
+                {0, 1},
+                {1, 0}
+        };
+    }
+
 
     @Test
     @Step("dropdownTest")
@@ -38,12 +59,15 @@ public class UITests extends BaseUITest {
 
         for (SelenideElement dropdownOption : dropdownOptions) {
             dropdownOption.click();
+            dropdownOption.shouldBe(Condition.selected);
             System.out.println("Option:" + dropdownOption.getText());
+            dropdownList.click();
+
         }
 
     }
 
-    @Test
+    @RepeatedTest(5)
     @Step("disappearingElementsTest")
     public void disappearingElementsTest(){
         int maxAttempts = 10;
@@ -62,33 +86,54 @@ public class UITests extends BaseUITest {
         disappearingElements.shouldHave(CollectionCondition.size(5));
     }
 
-    @Test
+
+    @TestFactory
+    List<DynamicTest> inputFactoryTests(){
+        List<DynamicTest> inputDynamicTests = new ArrayList<>();
+
+        String[] inputValues = {"12345", "0000000", "-789", "999999", "5.6", "asdasdasd", "=///::", "абв", " 22", "33 "};
+        for (String value : inputValues) {
+            inputDynamicTests.add(DynamicTest.dynamicTest("Testing value:" + value, () -> inputsTest(value)));
+        }
+        return inputDynamicTests;
+    }
+
     @Step("inputsTest")
-    public void inputsTest() {
+    public void inputsTest(String inputValue) {
         open(INPUTS);
         SelenideElement input = $x("//input");
 
         input.click();
-        input.sendKeys("12345");
+        input.sendKeys(inputValue);
+        String actualInputValue = input.getValue();
 
-        System.out.println("Value:"+input.getValue());
+        System.out.println("Value:"+actualInputValue);
+
+        input.shouldHave(Condition.value(inputValue));
+        Assertions.assertEquals(inputValue, actualInputValue); // без этой доп строчки тесты с пробелами проходили
+
+
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(ints = {0,1,2})
     @Step("hoversTest")
-    public void hoversTest() {
+    public void hoversTest(int hoverIndex) {
+
+        String[] expectedTexts = {"name: user1", "name: user2", "name: user3"};
         open(HOVERS);
 
         ElementsCollection hoverElements = $$x("//div/img");
         ElementsCollection hiddenText = $$x("//h5");
 
-        for (int i = 0; i < hoverElements.size(); i++) {
-            hoverElements.get(i).hover();
-            System.out.println(hiddenText.get(i).getText());
-        }
+            hoverElements.get(hoverIndex).hover();
+            System.out.println(hiddenText.get(hoverIndex).getText());
+            hiddenText.get(hoverIndex).shouldHave(Condition.text(expectedTexts[hoverIndex]));
+
+
     }
 
-    @Test
+    @RepeatedTest(10)
     @Step("notificationTest")
     public void notificationTest() {
 
@@ -96,36 +141,48 @@ public class UITests extends BaseUITest {
 
         SelenideElement notificationButton = $x("//p/a");
         SelenideElement notificationText = $x("//div[@class = 'flash notice']");
-        String actualUnsuccess;
-        do {
-            notificationButton.click();
-            actualUnsuccess = notificationText.getText().replace("×", "").trim();
-        } while (actualUnsuccess.equals(NOTIFICATION_UNSUCCESSFUL));
+        notificationButton.click();
+        notificationText.shouldHave(Condition.text((NOTIFICATION_SUCCESSFUL)));
 
-        String actualSuccess = notificationText.getText().replace("×", "").trim();
-        assert actualSuccess.equals(NOTIFICATION_SUCCESSFUL);
     }
 
-    @Test
+
+    @TestFactory
+    List<DynamicTest> addRemoveFactoryTests(){
+        List<DynamicTest> addRemoveDynamicTests = new ArrayList<>();
+        int[] addCountValues = {2,5,1};
+        int[] deleteCountValues = {1,2,3};
+
+        for (int i = 0; i < addCountValues.length; i++) {
+            int addCount = addCountValues[i];
+            int deleteCount = deleteCountValues[i];
+            addRemoveDynamicTests.add(DynamicTest.dynamicTest("Testing values: " + addCount + ", " + deleteCount, () -> addRemoveElementsTest(addCount, deleteCount)));}
+        return addRemoveDynamicTests;
+    }
+
     @Step("addRemoveElementsTest")
-    public void addRemoveElementsTest() {
+    public void addRemoveElementsTest(int addCount, int deleteCount) {
 
         Random random = new Random();
         int randomDeleteButton;
+        int expectedDeleteButtons = 0;
 
         open(ADD_REMOVE_ELEMENTS);
         ElementsCollection deleteButton = $$x("//button[@onclick='deleteElement()']");
         SelenideElement addRemoveButton = $x("//button[@onclick='addElement()']");
-        for (int i = 0; i < 5; i++){
+        for (int i = 0; i < addCount; i++){
             addRemoveButton.click();
             deleteButton = $$x("//button[@onclick='deleteElement()']");
+            expectedDeleteButtons++;
+            Assertions.assertEquals(expectedDeleteButtons, deleteButton.size());
             System.out.println(deleteButton.last().getText());
         }
-
-        for (int i = 0; i < 3; i++){
+        for (int i = 0; i < deleteCount; i++){
             randomDeleteButton = random.nextInt(deleteButton.size());
             deleteButton.get(randomDeleteButton).click();
             deleteButton = $$x("//button[@onclick='deleteElement()']");
+            expectedDeleteButtons--;
+            Assertions.assertEquals(expectedDeleteButtons, deleteButton.size());
             System.out.println("Remaining delete buttons after deletion: " + deleteButton.size());
             System.out.println("Delete buttons texts: " + deleteButton.texts());
 
@@ -140,6 +197,8 @@ public class UITests extends BaseUITest {
         ElementsCollection statusCodes = $$x("//li/a");
         SelenideElement statusCodeText1;
         SelenideElement statusCodeText2;
+        int expectedStatusCode = 0;
+        String[] expectedStatusCodes = {"This page returned a 200 status code.", "This page returned a 301 status code.", "This page returned a 404 status code.", "This page returned a 500 status code."};
 
         for (SelenideElement statusCode : statusCodes){
             statusCode.click();
@@ -147,6 +206,8 @@ public class UITests extends BaseUITest {
             statusCodeText2 = $x("//p");
             System.out.println(statusCodeText1.getText());
             System.out.println(statusCodeText2.getText());
+            statusCodeText2.shouldHave(Condition.text(expectedStatusCodes[expectedStatusCode]));
+            expectedStatusCode++;
             back();
         }
 
