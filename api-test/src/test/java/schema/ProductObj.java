@@ -9,8 +9,6 @@ public class ProductObj {
     double price;
     double discount;
     int quantity;
-
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     int id;
 
     public ProductObj(String name, String category, double price, double discount, int id, int quantity) {

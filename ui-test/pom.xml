@@ -10,6 +10,7 @@
     <name>Archetype - ui-test</name>
     <url>http://maven.apache.org</url>
 
+
     <properties>
         <selenium.version>4.24.0</selenium.version>
         <selenide.version>7.4.3</selenide.version>

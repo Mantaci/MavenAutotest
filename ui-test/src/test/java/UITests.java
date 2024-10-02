@@ -1,6 +1,7 @@
 import com.codeborne.selenide.*;
 import core.*;
 import io.qameta.allure.Step;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -58,9 +59,7 @@ public class UITests extends BaseUITest {
             }
             else break;
         }
-
-        assert disappearingElements.size() == 5;
-
+        disappearingElements.shouldHave(CollectionCondition.size(5));
     }
 
     @Test
