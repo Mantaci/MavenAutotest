@@ -1,3 +1,4 @@
+import Listeners.AllureTestWatcher;
 import com.codeborne.selenide.*;
 import core.*;
 import io.qameta.allure.Step;
@@ -7,15 +8,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.interactions.Actions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import static com.codeborne.selenide.Selenide.*;
-import static schema.NotificationTest.*;
+import static schema.ALERTS.CONTEXT_MENU_ALERT;
+import static schema.NOTIFICATIONS.*;
 import static schema.URLS.*;
 
 
 @ExtendWith(AllureJunit5.class)
+@ExtendWith(AllureTestWatcher.class)
 public class UITests extends BaseUITest {
 
     @ParameterizedTest
@@ -210,6 +217,76 @@ public class UITests extends BaseUITest {
             expectedStatusCode++;
             back();
         }
+
+    }
+
+    @Test
+    @Step("dragAndDrop")
+    public void dragAndDropTest() {
+        open(DRAG_AND_DROP);
+        Actions actions = Selenide.actions();
+        SelenideElement elementA = $x("//div[@id='column-a']");
+        SelenideElement elementB = $x("//div[@id='column-b']");
+        actions.clickAndHold(elementA) //реализация без метода dragAndDrop() на оценку 10
+            .moveToElement(elementB)
+            .release().perform();
+
+        elementA.shouldHave(Condition.text("B"));
+        elementB.shouldHave(Condition.text("A"));
+
+    }
+
+    @Test
+    @Step("contextMenuTest")
+    public void contextMenuTest() {
+        open(CONTEXT_MENU);
+        SelenideElement contextMenuButton = $x("//div[@id='hot-spot']");
+        contextMenuButton.contextClick();
+        Alert alert = Selenide.switchTo().alert();
+        String alertText = alert.getText();
+
+        Assertions.assertEquals(alertText, CONTEXT_MENU_ALERT);
+    }
+
+    @Test
+    @Step("infiniteScrollTest")
+    public void infiniteScrollTest() {
+        open(INFINITE_SCROLL);
+        Actions actions = Selenide.actions();
+        SelenideElement text = $x("//div[@class='jscroll-inner']");
+        while(!text.innerText().contains("Eius")) {
+            actions.scrollByAmount(0, 300);
+            actions.perform();
+            text = $x("//div[@class='jscroll-inner']");
+        }
+        SelenideElement paragraph = $x("//div[@class='jscroll-inner']/div[@class='jscroll-added'][last()]");
+        paragraph.shouldBe(Condition.text("Eius"));
+        Assertions.assertTrue(paragraph.isDisplayed());
+
+    }
+
+    @Test
+    @Step("keyPressesTest")
+    public void keyPressesTest() {
+        open(KEY_PRESSES);
+        SelenideElement input = $x("//input");
+        SelenideElement result = $x("//p[@id='result']");
+        Keys[] keys = {Keys.ENTER,Keys.CONTROL,Keys.ALT,Keys.TAB };
+        String[] chars = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"};
+        Actions actions = Selenide.actions();
+        for (String c : chars){
+            input.click();
+            input.sendKeys(c);
+            Assertions.assertTrue(result.getText().contains(c.toUpperCase()));
+        }
+        result.click();
+        for (Keys key : keys){
+            actions.sendKeys(key).perform();
+            Assertions.assertTrue(result.getText().contains(key.name()));
+        }
+
+
+
 
     }
 
