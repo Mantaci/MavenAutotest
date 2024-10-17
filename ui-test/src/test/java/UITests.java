@@ -75,7 +75,7 @@ public class UITests extends BaseUITest {
     }
 
     @RepeatedTest(5)
-    @Step("disappearingElementsTest")
+        @Step("disappearingElementsTest")
     public void disappearingElementsTest(){
         int maxAttempts = 10;
 
@@ -257,7 +257,6 @@ public class UITests extends BaseUITest {
         while(!text.innerText().contains("Eius")) {
             actions.scrollByAmount(0, 300);
             actions.perform();
-            text = $x("//div[@class='jscroll-inner']");
         }
         SelenideElement paragraph = $x("//div[@class='jscroll-inner']/div[@class='jscroll-added'][last()]");
         paragraph.shouldBe(Condition.text("Eius"));
